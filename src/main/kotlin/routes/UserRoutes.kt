@@ -7,34 +7,51 @@ import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.auth.jwt.*
+import java.util.UUID
+import io.ktor.http.*
+import com.example.security.hasRole
+import com.example.security.Role
 
-fun Route.userRoutes(userRepo: UserRepository) {
-    authenticate {                               // requiere JWT
-        get("/me") {
-            // 1) Obtén el claim como String?
-            val principal = call.principal<JWTPrincipal>()
-            val email: String? = principal?.getClaim("email", String::class)
+// routes/UserRoutes.kt
+fun Route.userRoutes(repo: UserRepository) {      // ← asegúrate de recibir el repo
 
-            // 2) Si el claim es nulo, responde 401
-            if (email.isNullOrBlank()) {
-                call.respond(HttpStatusCode.Unauthorized, "Invalid token")
-                return@get
+    authenticate("auth-jwt") {
+        get("/users") {
+            get("/users") {
+                if (!call.hasRole(Role.admin))           // ⬅️ filtro de rol
+                    return@get call.respond(HttpStatusCode.Forbidden, "Solo admins")
+
+                call.respond(repo.getAllUsers())
+            }                 // se serializa a JSON
+        }
+
+        /* ---------- 2) Obtener por ID ---------- */
+        get("/users/{id}") {
+            val idParam = call.parameters["id"]
+            val id = try { UUID.fromString(idParam) }
+            catch (e: Exception) {
+                return@get call.respond(
+                    HttpStatusCode.BadRequest,
+                    "UUID inválido o ausente"
+                )
             }
 
-            // 3) Busca el usuario (repo devuelve User?)
-            val user = userRepo.findByEmail(email)
-                ?: return@get call.respond(HttpStatusCode.NotFound, "User not found")
-
-            // 4) Mapea a DTO y responde
-            call.respond(UserDto(name = user.username))
+            repo.findById(id)
+                ?.let { call.respond(it) }
+                ?: call.respond(HttpStatusCode.NotFound, "Usuario no existe")
         }
-    }
-    /**  lista de usuarios (protector opcional) **/
-    authenticate(optional = true) {          // pon 'optional=true' si quieres que funcione con o sin token
-        get("/users") {
-            call.respond(userRepo.getAllUsers())
+
+        delete("/users/{id}") {
+            if (!call.hasRole(Role.admin))
+                return@delete call.respond(HttpStatusCode.Forbidden, "Solo admins")
+
+            val id = call.parameters["id"]?.let(UUID::fromString)
+                ?: return@delete call.respond(HttpStatusCode.BadRequest, "UUID inválido")
+
+            if (repo.delete(id))
+                call.respond(HttpStatusCode.NoContent)
+            else
+                call.respond(HttpStatusCode.NotFound, "Usuario no existe")
         }
     }
 }
-@kotlinx.serialization.Serializable
-data class UserDto(val name: String)

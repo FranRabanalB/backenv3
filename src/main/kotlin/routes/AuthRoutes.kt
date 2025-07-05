@@ -68,6 +68,7 @@ fun Route.authRoutes(userRepo: UserRepository, jwtConfig: JwtConfig) {
         }
 
         post("/login") {
+
             val body = call.receive<LoginRequest>()
 
             val user = userRepo.validateCredentials(body.email, body.password)
@@ -77,6 +78,7 @@ fun Route.authRoutes(userRepo: UserRepository, jwtConfig: JwtConfig) {
             }
 
             val (jwt, exp) = generateToken(user.email, user.roles, jwtConfig)
+
             call.respond(AuthResponse(jwt, exp))
         }
 

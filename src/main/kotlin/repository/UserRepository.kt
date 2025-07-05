@@ -5,6 +5,7 @@ import com.example.models.Users
 import com.example.models.Users.toDTO
 import kotlinx.coroutines.Dispatchers
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import java.util.*
 
@@ -65,5 +66,9 @@ class UserRepository {
     /* ---------- 5) Buscar por ID ---------- */
     suspend fun findById(id: UUID): UserDto? = query {
         Users.select { Users.id eq id }.singleOrNull()?.toDTO()
+    }
+
+    suspend fun delete(id: UUID): Boolean = newSuspendedTransaction(Dispatchers.IO) {
+        Users.deleteWhere { Users.id eq id } > 0
     }
 }

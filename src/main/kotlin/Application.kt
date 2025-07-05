@@ -25,7 +25,7 @@ fun Application.module() {
 
     /* 1️⃣  Instalar Authentication */
     install(Authentication) {
-        jwt {
+        jwt("auth-jwt") {
             realm = "artistas-app"
             verifier(
                 JWT

@@ -35,18 +35,24 @@ object DatabaseFactory {
         Database.connect(HikariDataSource(hikari))
         transaction {
             SchemaUtils.create(Users)
-            if (Users.selectAll().empty()) {
-                Users.insert {
-                    it[username] = "admin"
-                    it[email] = "admin@artistas.com"
-                    it[passwordHash] = BCrypt.withDefaults()
-                        .hashToString(12, "admin123".toCharArray())
-                    it[roles] = "admin"
-                }
-            }
+            seedAdminIfNeeded()
         }
     }
 
+
     suspend fun <T> dbQuery(block: () -> T): T =
         newSuspendedTransaction(Dispatchers.IO) { block() }
+
+    private fun seedAdminIfNeeded() {
+        if (Users.selectAll().empty()) {
+            Users.insert {
+                it[username]     = "admin"
+                it[email]        = "admin@artistas.com"
+                it[passwordHash] = BCrypt.withDefaults()
+                    .hashToString(12, "admin123".toCharArray())
+                it[roles]        = "admin,user"   // ⬅️ CSV con todos los roles
+            }
+            println("✔ Usuario admin sembrado: admin@artistas.com / admin123")
+        }
+    }
 }
