@@ -1,7 +1,8 @@
 package com.example
 
 import com.example.database.DatabaseFactory
-import com.example.repository.UserRepository            // ✔
+import com.example.repository.UserRepository
+import com.example.repository.MaterialRepository // ✔
 import com.example.routes.JwtConfig
 import com.example.plugins.configureRouting
 import com.example.plugins.configureSerialization
@@ -22,6 +23,7 @@ fun Application.module() {
         secret   = environment.config.property("ktor.jwt.secret").getString()
     )
     val userRepo = UserRepository()
+    val materialRepo = MaterialRepository()
 
     /* 1️⃣  Instalar Authentication */
     install(Authentication) {
@@ -44,5 +46,6 @@ fun Application.module() {
     configureSerialization()
 
     /* 3️⃣  Rutas (ya pueden usar `authenticate { … }`) */
-    configureRouting(userRepo, jwtCfg)
+    configureRouting(userRepo,materialRepo, jwtCfg)
+
 }

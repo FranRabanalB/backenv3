@@ -30,15 +30,17 @@ data class JwtConfig(
 )
 
 /* ---------- 3) Función para generar el token ---------- */
-fun generateToken(email: String, roles: List<String>, cfg: JwtConfig): Pair<String, Long> {
+fun generateToken(subject: String, roles: List<String>, cfg: JwtConfig): Pair<String, Long> {
     val expiresAt = Instant.now().plusMillis(cfg.validityMs)
+
     val token = JWT.create()
         .withIssuer(cfg.issuer)
         .withAudience(cfg.audience)
-        .withSubject(email)
-        .withArrayClaim("roles", roles.toTypedArray())   // ← array, no List
+        .withSubject(subject)                   // <-- ahora será el UUID
+        .withArrayClaim("roles", roles.toTypedArray())
         .withExpiresAt(Date.from(expiresAt))
-        .sign(Algorithm.HMAC256(cfg.secret))             // firma HMAC-SHA256
+        .sign(Algorithm.HMAC256(cfg.secret))
+
     return token to expiresAt.toEpochMilli()
 }
 
@@ -50,37 +52,29 @@ fun Route.authRoutes(userRepo: UserRepository, jwtConfig: JwtConfig) {
 
         post("/register") {
             val body = call.receive<RegisterRequest>()
-
-            /* Validaciones mínimas */
-            if (body.username.isBlank() || body.email.isBlank() || body.password.length < 6) {
-                call.respond(HttpStatusCode.BadRequest, "Datos inválidos")
-                return@post
-            }
+            // …validaciones…
 
             val created = userRepo.registerUser(body.username, body.email, body.password)
-            if (created == null) {
-                call.respond(HttpStatusCode.Conflict, "Ese correo ya está registrado")
-                return@post
-            }
+                ?: return@post call.respond(HttpStatusCode.Conflict, "Ese correo ya está registrado")
 
-            val (jwt, exp) = generateToken(created.email, created.roles, jwtConfig)
+            // Usa el ID recién creado (UUID) como subject
+            val (jwt, exp) = generateToken(created.id, created.roles, jwtConfig)
+
             call.respond(HttpStatusCode.Created, AuthResponse(jwt, exp))
         }
 
+
         post("/login") {
-
             val body = call.receive<LoginRequest>()
-
             val user = userRepo.validateCredentials(body.email, body.password)
-            if (user == null) {
-                call.respond(HttpStatusCode.Unauthorized, "Credenciales incorrectas")
-                return@post
-            }
+                ?: return@post call.respond(HttpStatusCode.Unauthorized, "Credenciales incorrectas")
 
-            val (jwt, exp) = generateToken(user.email, user.roles, jwtConfig)
+            // Usa también aquí el ID
+            val (jwt, exp) = generateToken(user.id, user.roles, jwtConfig)
 
             call.respond(AuthResponse(jwt, exp))
         }
+
 
     }
 }
