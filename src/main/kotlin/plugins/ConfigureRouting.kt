@@ -6,6 +6,7 @@ import com.example.routes.materialRoutes
 import com.example.routes.authRoutes
 import com.example.routes.userRoutes
 import com.example.routes.JwtConfig
+import io.ktor.server.auth.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -19,7 +20,9 @@ fun Application.configureRouting(
     routing {
         get("/") { call.respondText("API activa") }
         authRoutes(userRepo, jwtCfg)
-        userRoutes(userRepo)
-        materialRoutes(materialRepo)
+        authenticate("auth-jwt") {
+            userRoutes(userRepo)
+            materialRoutes(materialRepo)
+        }
     }
 }

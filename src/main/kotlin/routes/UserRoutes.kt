@@ -17,12 +17,12 @@ fun Route.userRoutes(repo: UserRepository) {      // ← asegúrate de recibir e
 
     authenticate("auth-jwt") {
         get("/users") {
-            get("/users") {
+
                 if (!call.hasRole(Role.admin))           // ⬅️ filtro de rol
                     return@get call.respond(HttpStatusCode.Forbidden, "Solo admins")
 
                 call.respond(repo.getAllUsers())
-            }                 // se serializa a JSON
+                            // se serializa a JSON
         }
 
         /* ---------- 2) Obtener por ID ---------- */
