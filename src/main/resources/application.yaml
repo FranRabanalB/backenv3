@@ -1,6 +1,7 @@
 ktor:
   deployment:
     port: 8080
+
   application:
     modules:
       - com.example.ApplicationKt.module
@@ -8,13 +9,11 @@ ktor:
   jwt:
     issuer: "http://146.83.198.35:1699"
     audience: "artistas-app"
-    secret: ${JWT_SECRET}      # usa variable de entorno; si no existe → error
+    secret: ${JWT_SECRET}
     validityMs: 3600000
 
   db:
-  url: ${?DATABASE_URL}
-  user: ${?DB_USER}
-  password: ${?DB_PASS}
-  driver: "org.postgresql.Driver"
-
-#  "MI-CLAVE-SUPER-SECRETA"
+    url:      ${?DATABASE_URL}
+    user:     ${?DB_USER}
+    password: ${?DB_PASS}
+    driver:   "org.postgresql.Driver"
