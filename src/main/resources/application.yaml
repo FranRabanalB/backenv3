@@ -6,15 +6,15 @@ ktor:
       - com.example.ApplicationKt.module
 
   jwt:
-    issuer: "http://0.0.0.0:8080"
+    issuer: "http://146.83.198.35:1699"
     audience: "artistas-app"
     secret: ${JWT_SECRET}      # usa variable de entorno; si no existe → error
     validityMs: 3600000
 
   db:
-    url: "jdbc:h2:file:./data/tesis-db;MODE=PostgreSQL"
-    user: "sa"
-    password: ""
-    driver: "org.h2.Driver"
+  url: ${?DATABASE_URL}
+  user: ${?DB_USER}
+  password: ${?DB_PASS}
+  driver: "org.postgresql.Driver"
 
 #  "MI-CLAVE-SUPER-SECRETA"
