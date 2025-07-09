@@ -13,7 +13,7 @@ ktor:
     validityMs: 3600000
 
   db:
-    url:      ${?DATABASE_URL}
-    user:     ${?DB_USER}
+    url:    ${?DATABASE_URL}
+    user:   ${?DB_USER}
     password: ${?DB_PASS}
     driver:   "org.postgresql.Driver"
