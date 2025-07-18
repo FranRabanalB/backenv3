@@ -2,6 +2,7 @@
 package com.example.models.material
 
 import com.example.models.Users
+import com.example.models.product.Products
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.dao.id.UUIDTable
 import org.jetbrains.exposed.sql.ResultRow
@@ -31,7 +32,7 @@ object Materials : UUIDTable("materials") {
     )
 
     /* ---------- mapeo Row → DTO ---------- */
-    fun ResultRow.toDTO() = DTO(
+    fun ResultRow.toDTO(): DTO = DTO(
         id          = this[id].value.toString(),
         userId      = this[userId].value.toString(),
         nombre      = this[nombre],
