@@ -3,6 +3,8 @@ package com.example.database
 import at.favre.lib.crypto.bcrypt.BCrypt
 import com.example.models.Users
 import com.example.models.material.Materials
+import com.example.models.product.ProductMaterials
+import com.example.models.product.Products
 import io.ktor.server.config.ApplicationConfig
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
@@ -34,11 +36,7 @@ object DatabaseFactory {
         }
 
         Database.connect(HikariDataSource(hikari))
-        transaction {
-            SchemaUtils.create(Users, Materials)
-
-            seedAdminIfNeeded()
-        }
+ 
     }
 
 
